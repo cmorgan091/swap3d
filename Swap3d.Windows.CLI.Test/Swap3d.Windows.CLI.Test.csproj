@@ -55,6 +55,8 @@
     <Content Include="GCodeFiles\threeColourTest.gcode">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="GCodeFiles\3.5mm purge test.gcode" />
+    <None Include="GCodeFiles\threeColourTestOuterBlack.gcode" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

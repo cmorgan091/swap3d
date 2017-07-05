@@ -11,6 +11,9 @@ namespace Swap3d.Windows.CLI.Test
     {
         private string TestFilesPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
+        /// <summary>
+        /// Check that the input file validation works correctly
+        /// </summary>
         [TestMethod]
         public void ParsingTest_Validation()
         {
@@ -24,5 +27,7 @@ namespace Swap3d.Windows.CLI.Test
             Assert.IsTrue(result);
 
         }
+
+
     }
 }

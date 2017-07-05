@@ -33,12 +33,12 @@ namespace Swap3d.Windows.CLI.Manipulation
         /// <summary>
         /// string to look for to detect start of gcodes proper. This should be the last line of slicer start gcode
         /// </summary>
-        const string BeginText = "begin";
+        const string BeginText = ";begin";
 
         /// <summary>
         /// string to look for to detect end of gcodes proper. This shuould be the first line of slicer start gcode
         /// </summary>
-        const string EndText = "end";
+        const string EndText = ";end";
 
         /// <summary>
         /// String to look for to detect a tool command (which is why we need to restrict the search to between "begin" and "end", Tool number counld be anything after the "T" so we can't can't search for "Tnn" explicitly
@@ -93,12 +93,74 @@ namespace Swap3d.Windows.CLI.Manipulation
                 _Logger.Info("Input file size: {0:0.00}MB", inputfileinfo.Length / 1024d / 1024d);
 
                 string inputline;
+                string buffer = String.Format("; modified by swap3d on {0} at {1}{2}", DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(), Environment.NewLine);
+                string output = string.Empty;
+
                 StreamReader inputsr = new StreamReader(InputFilePath);
                 while ((inputline = inputsr.ReadLine()) != null)
                 {
-                    // here we will actually process the file and do something...
+                    bool flushbuffer = false; // when set to true everything collected in the buffer will be pushed to output
+                    
+                    switch (inputline.Trim().ToLower())
+                    {
+                        case BeginText:
+                            if (BeginFlag)
+                            {
+                                _Logger.Warn("Multiple begin lines found");
+                            }
+
+                            // so since we haven't reached the beginning we just send this to the buffer
+                            buffer += inputline + Environment.NewLine;
+
+                            BeginFlag = true;
+                            flushbuffer = true;
+
+                            break;
+                        case EndText:
+                            // so the end has been called
+                            if (EndFlag)
+                            {
+                                _Logger.Warn("Multiple end lines found");
+                            }
+                            if (!BeginFlag)
+                            {
+                                _Logger.Warn("End line came before begin line");
+                            }
+
+                            // so since we haven't reached the end we just send this to the buffer
+                            buffer += inputline + Environment.NewLine;
+
+                            EndFlag = true;
+                            flushbuffer = true;
+                            break;
+                    }
+
+
+
+                    if (flushbuffer)
+                    {
+                        output += buffer;
+                        buffer = string.Empty;
+                    }
                     
                 }
+
+                // validate the end of things
+                bool finalvalidation = true;
+
+                if (!BeginFlag)
+                {
+                    // so we reached the end without finding a buffer
+                    _Logger.Error("The file does not contain ;begin");
+                    finalvalidation = false;
+                }
+
+                if (!finalvalidation)
+                {
+                    _Logger.Error("The file has failed validation");
+                }
+
+
             }
 
 
